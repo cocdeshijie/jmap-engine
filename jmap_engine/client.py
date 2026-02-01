@@ -555,6 +555,21 @@ class JMAPClient:
         if body_values:
             email['bodyValues'] = body_values
         
+        # Auto-detect identity if not provided
+        if identity_id is None and 'from' in email and email['from']:
+            from_email = email['from'][0].get('email', '').lower()
+            if from_email:
+                identities = self.get_identities(account_id=account_id)
+                for identity in identities:
+                    identity_email = identity.get('email', '').lower()
+                    # Match exact email or wildcard (e.g., *@domain.com)
+                    if identity_email == from_email or (
+                        identity_email.startswith('*@') and 
+                        from_email.endswith(identity_email[1:])
+                    ):
+                        identity_id = identity['id']
+                        break
+        
         # Create email draft first
         create_args = {
             'accountId': account_id,
