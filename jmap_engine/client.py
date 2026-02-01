@@ -64,6 +64,137 @@ class JMAPClient:
         """Context manager exit"""
         self.close()
     
+    def get_permissions(self) -> Dict[str, Any]:
+        """
+        Get detailed information about API key permissions and capabilities.
+        
+        Returns:
+            Dictionary containing:
+            - capabilities: Server capabilities
+            - accounts: Available accounts and their features
+            - primary_accounts: Primary account IDs for each capability
+            - supported_features: Human-readable list of what you can do
+        
+        Example:
+            >>> perms = client.get_permissions()
+            >>> print(f"Capabilities: {perms['supported_features']}")
+            >>> for account_id, info in perms['accounts'].items():
+            >>>     print(f"Account: {info['name']}")
+        """
+        result = {
+            'capabilities': self.session.capabilities,
+            'accounts': self.session.accounts,
+            'primary_accounts': self.session.primary_accounts,
+            'supported_features': []
+        }
+        
+        # Parse capabilities into human-readable features
+        cap_descriptions = {
+            'urn:ietf:params:jmap:core': 'Core JMAP protocol',
+            'urn:ietf:params:jmap:mail': 'Email reading and management',
+            'urn:ietf:params:jmap:submission': 'Email sending',
+            'urn:ietf:params:jmap:vacationresponse': 'Vacation responses',
+            'urn:ietf:params:jmap:contacts': 'Contact management',
+            'urn:ietf:params:jmap:calendars': 'Calendar management',
+            'urn:ietf:params:jmap:quota': 'Storage quota information',
+            'urn:ietf:params:jmap:blob': 'File upload/download',
+            'https://www.fastmail.com/dev/maskedemail': 'Fastmail masked email',
+        }
+        
+        for cap in self.session.capabilities.keys():
+            feature = cap_descriptions.get(cap, cap)
+            result['supported_features'].append(feature)
+        
+        return result
+    
+    def print_permissions(self) -> None:
+        """
+        Print a human-readable summary of API key permissions.
+        
+        Shows what operations are allowed with the current API key.
+        """
+        perms = self.get_permissions()
+        
+        print("=" * 70)
+        print("                 JMAP API Key Permissions")
+        print("=" * 70)
+        
+        # Capabilities
+        print("\n✅ Supported Features:")
+        for feature in perms['supported_features']:
+            print(f"   • {feature}")
+        
+        # Accounts
+        print(f"\n👤 Accounts ({len(perms['accounts'])}):")
+        for account_id, account_info in perms['accounts'].items():
+            name = account_info.get('name', 'Unknown')
+            is_personal = account_info.get('isPersonal', False)
+            is_readonly = account_info.get('isReadOnly', False)
+            
+            account_type = []
+            if is_personal:
+                account_type.append('Personal')
+            if is_readonly:
+                account_type.append('Read-only')
+            
+            type_str = f" ({', '.join(account_type)})" if account_type else ""
+            print(f"   • {name}{type_str}")
+            print(f"     ID: {account_id}")
+            
+            # Account capabilities
+            account_caps = account_info.get('accountCapabilities', {})
+            if account_caps:
+                print(f"     Features:")
+                for cap in account_caps.keys():
+                    if 'mail' in cap:
+                        # Get mail-specific limits
+                        mail_info = account_caps.get(cap, {})
+                        max_size = mail_info.get('maxSizeMessageAttachments')
+                        if max_size:
+                            size_mb = max_size / (1024 * 1024)
+                            print(f"       - Mail (max attachment: {size_mb:.1f} MB)")
+                        else:
+                            print(f"       - Mail")
+                    elif 'submission' in cap:
+                        print(f"       - Email sending")
+                    elif 'contacts' in cap:
+                        print(f"       - Contacts")
+                    elif 'calendars' in cap:
+                        print(f"       - Calendars")
+        
+        # Primary accounts
+        print(f"\n🌟 Primary Accounts:")
+        for cap, account_id in perms['primary_accounts'].items():
+            account = perms['accounts'].get(account_id, {})
+            name = account.get('name', 'Unknown')
+            if 'mail' in cap:
+                print(f"   • Mail: {name}")
+            elif 'contacts' in cap:
+                print(f"   • Contacts: {name}")
+            elif 'calendars' in cap:
+                print(f"   • Calendars: {name}")
+        
+        # Check for specific permissions
+        print(f"\n🔒 Permissions:")
+        
+        can_read_mail = 'urn:ietf:params:jmap:mail' in perms['capabilities']
+        can_send_mail = 'urn:ietf:params:jmap:submission' in perms['capabilities']
+        can_manage_contacts = 'urn:ietf:params:jmap:contacts' in perms['capabilities']
+        can_manage_calendars = 'urn:ietf:params:jmap:calendars' in perms['capabilities']
+        
+        permissions = [
+            ('Read emails', can_read_mail, '📧'),
+            ('Send emails', can_send_mail, '📤'),
+            ('Manage contacts', can_manage_contacts, '👥'),
+            ('Manage calendars', can_manage_calendars, '📅'),
+        ]
+        
+        for perm_name, allowed, icon in permissions:
+            status = '✅' if allowed else '❌'
+            print(f"   {status} {icon} {perm_name}")
+        
+        print("\n" + "=" * 70)
+    
     def _next_request_id(self) -> str:
         """Generate next request ID"""
         self._request_id += 1

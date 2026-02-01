@@ -56,6 +56,51 @@ with JMAPClient('https://jmap.example.com', 'user@example.com', 'password') as c
     print(f"Found {len(mailboxes)} mailboxes")
 ```
 
+### Check API key permissions
+
+```python
+with JMAPClient('https://api.fastmail.com', 'you@fastmail.com', 'api-key') as client:
+    # Print formatted permissions report
+    client.print_permissions()
+    
+    # Or get as dictionary for programmatic use
+    perms = client.get_permissions()
+    
+    if 'urn:ietf:params:jmap:mail' in perms['capabilities']:
+        print("✅ Can read emails")
+    
+    if 'urn:ietf:params:jmap:submission' in perms['capabilities']:
+        print("✅ Can send emails")
+    else:
+        print("❌ Cannot send emails - need 'Write mail' permission")
+```
+
+**Example output:**
+```
+======================================================================
+                 JMAP API Key Permissions
+======================================================================
+
+✅ Supported Features:
+   • Core JMAP protocol
+   • Email reading and management
+   • Email sending
+   • Contact management
+
+👤 Accounts (1):
+   • you@fastmail.com (Personal)
+     ID: u12345
+     Features:
+       - Mail (max attachment: 50.0 MB)
+       - Email sending
+
+🔒 Permissions:
+   ✅ 📧 Read emails
+   ✅ 📤 Send emails
+   ✅ 👥 Manage contacts
+   ❌ 📅 Manage calendars
+```
+
 ### View emails
 
 ```python
