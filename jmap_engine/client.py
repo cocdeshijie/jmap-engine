@@ -116,11 +116,13 @@ class JMAPClient:
         perms = self.get_permissions()
         
         print("=" * 70)
-        print("                 JMAP API Key Permissions")
+        print("              JMAP API Key Permissions")
         print("=" * 70)
+        print("\n💡 This shows what YOUR API KEY can do (not account properties).")
+        print("   The permissions below reflect your API token's scope.\n")
         
         # Capabilities
-        print("\n✅ Supported Features:")
+        print("✅ API Key Has Access To:")
         for feature in perms['supported_features']:
             print(f"   • {feature}")
         
@@ -134,8 +136,8 @@ class JMAPClient:
             account_type = []
             if is_personal:
                 account_type.append('Personal')
-            if is_readonly:
-                account_type.append('Read-only')
+            # Note: isReadOnly is an account property, not API key permission
+            # Don't display it as it's confusing - check capabilities instead
             
             type_str = f" ({', '.join(account_type)})" if account_type else ""
             print(f"   • {name}{type_str}")
@@ -145,8 +147,10 @@ class JMAPClient:
             account_caps = account_info.get('accountCapabilities', {})
             if account_caps:
                 print(f"     Features:")
+                displayed_features = set()  # Track what we've shown
+                
                 for cap in account_caps.keys():
-                    if 'mail' in cap:
+                    if 'mail' in cap and 'mail' not in displayed_features:
                         # Get mail-specific limits
                         mail_info = account_caps.get(cap, {})
                         max_size = mail_info.get('maxSizeMessageAttachments')
@@ -155,27 +159,42 @@ class JMAPClient:
                             print(f"       - Mail (max attachment: {size_mb:.1f} MB)")
                         else:
                             print(f"       - Mail")
-                    elif 'submission' in cap:
+                        displayed_features.add('mail')
+                    elif 'submission' in cap and 'submission' not in displayed_features:
                         print(f"       - Email sending")
-                    elif 'contacts' in cap:
+                        displayed_features.add('submission')
+                    elif 'contacts' in cap and 'contacts' not in displayed_features:
                         print(f"       - Contacts")
-                    elif 'calendars' in cap:
+                        displayed_features.add('contacts')
+                    elif 'calendars' in cap and 'calendars' not in displayed_features:
                         print(f"       - Calendars")
+                        displayed_features.add('calendars')
         
         # Primary accounts
         print(f"\n🌟 Primary Accounts:")
+        displayed_primary = {}  # Track account_id -> types to avoid duplicates
+        
         for cap, account_id in perms['primary_accounts'].items():
             account = perms['accounts'].get(account_id, {})
             name = account.get('name', 'Unknown')
-            if 'mail' in cap:
-                print(f"   • Mail: {name}")
-            elif 'contacts' in cap:
-                print(f"   • Contacts: {name}")
-            elif 'calendars' in cap:
-                print(f"   • Calendars: {name}")
+            
+            if account_id not in displayed_primary:
+                displayed_primary[account_id] = {'name': name, 'types': []}
+            
+            if 'mail' in cap.lower() and 'mail' not in displayed_primary[account_id]['types']:
+                displayed_primary[account_id]['types'].append('mail')
+            elif 'contact' in cap.lower() and 'contacts' not in displayed_primary[account_id]['types']:
+                displayed_primary[account_id]['types'].append('contacts')
+            elif 'calendar' in cap.lower() and 'calendars' not in displayed_primary[account_id]['types']:
+                displayed_primary[account_id]['types'].append('calendars')
+        
+        # Display consolidated
+        for account_id, info in displayed_primary.items():
+            types_str = ', '.join(t.capitalize() for t in info['types'])
+            print(f"   • {types_str}: {info['name']}")
         
         # Check for specific permissions
-        print(f"\n🔒 Permissions:")
+        print(f"\n🔑 What This API Key Can Do:")
         
         can_read_mail = 'urn:ietf:params:jmap:mail' in perms['capabilities']
         can_send_mail = 'urn:ietf:params:jmap:submission' in perms['capabilities']
@@ -190,7 +209,7 @@ class JMAPClient:
         ]
         
         for perm_name, allowed, icon in permissions:
-            status = '✅' if allowed else '❌'
+            status = '✅ CAN' if allowed else '❌ CANNOT'
             print(f"   {status} {icon} {perm_name}")
         
         print("\n" + "=" * 70)
