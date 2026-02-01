@@ -225,12 +225,55 @@ email_ids = client.query_emails(filter=query.to_dict())
 ## Troubleshooting
 
 ### "HTTP 401: Bad credentials"
-- Make sure you're using an **App Password**, not your main Fastmail password
-- Regenerate the app password if needed
+- Make sure you're using an **API Key** or **App Password**, not your main Fastmail password
+- For API keys: Ensure it starts with `fmu1-` and is copied correctly
+- Regenerate the token/password if needed
+
+### "account is a read only account" Error
+
+**Problem:** You can connect and read emails, but sending/modifying fails with:
+```
+JMAPMethodError: method is not a read only method, but account is a read only account
+```
+
+**What's happening:**
+- Your **API key HAS permission** to write (you selected "Write mail")
+- But your **Fastmail account is in read-only mode** (account-level restriction)
+- These are two different things!
+
+**Check if this is your issue:**
+```python
+client.print_permissions()
+```
+
+Look for:
+```
+⚠️  Account-Level Restrictions:
+   🔒 Account 'you@fastmail.com' is READ-ONLY
+      → API key has write permissions, but account is restricted
+      ⚠️  Sending emails will FAIL despite API key having permission!
+```
+
+**Solutions:**
+
+1. **Contact Fastmail Support** - Ask them to remove the read-only restriction from your account
+   - Email: support@fastmail.com
+   - Explain: "My account is marked read-only in JMAP, I need write access"
+
+2. **Check if this is a shared/delegated account:**
+   - Fastmail sometimes marks delegated accounts as read-only
+   - If someone shared their mailbox with you, you might only have read access
+   - You'll need write permission from the account owner
+
+3. **Verify your account status:**
+   - Log into https://www.fastmail.com/
+   - Check Settings → Accounts → Make sure your account is fully activated
+   - Some trial/suspended accounts may be read-only
 
 ### "No such capability"
 - Fastmail supports all standard JMAP features
 - Check `client.session.capabilities` to see available capabilities
+- If a capability is missing, your API key might not have that permission
 
 ### Rate Limiting
 Fastmail has generous rate limits for JMAP:

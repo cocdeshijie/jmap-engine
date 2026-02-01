@@ -212,6 +212,27 @@ class JMAPClient:
             status = '✅ CAN' if allowed else '❌ CANNOT'
             print(f"   {status} {icon} {perm_name}")
         
+        # Check for account-level restrictions
+        print(f"\n⚠️  Account-Level Restrictions:")
+        has_warnings = False
+        
+        for account_id, account_info in perms['accounts'].items():
+            is_readonly = account_info.get('isReadOnly', False)
+            
+            if is_readonly:
+                has_warnings = True
+                account_name = account_info.get('name', account_id)
+                print(f"   🔒 Account '{account_name}' is READ-ONLY")
+                print(f"      → API key has write permissions, but account is restricted")
+                print(f"      → You CAN read emails, but CANNOT send/modify/delete")
+                print(f"      → Contact Fastmail support to enable write access")
+                
+                if can_send_mail:
+                    print(f"      ⚠️  Sending emails will FAIL despite API key having permission!")
+        
+        if not has_warnings:
+            print(f"   ✅ No account restrictions detected")
+        
         print("\n" + "=" * 70)
     
     def _next_request_id(self) -> str:
@@ -430,9 +451,25 @@ class JMAPClient:
         
         Returns:
             EmailSubmission object
+        
+        Raises:
+            JMAPMethodError: If account is read-only or API key lacks permission
         """
         if account_id is None:
             account_id = self.session.get_account_id()
+        
+        # Check if account is read-only
+        account_info = self.session.accounts.get(account_id, {})
+        if account_info.get('isReadOnly', False):
+            from .exceptions import JMAPMethodError
+            raise JMAPMethodError(
+                f"Cannot send email: Account is READ-ONLY.\n"
+                f"Your API key has send permission, but the account '{account_info.get('name', account_id)}' "
+                f"is restricted by Fastmail.\n"
+                f"💡 Solution: Contact Fastmail support to remove read-only restriction from your account.\n"
+                f"   Or check if this is a shared/delegated account with limited access.",
+                error_type='accountReadOnly'
+            )
         
         # Create email draft first
         create_args = {

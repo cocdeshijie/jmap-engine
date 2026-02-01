@@ -136,7 +136,13 @@ with JMAPClient('https://api.fastmail.com', 'you@fastmail.com', 'api-key') as cl
         print("✅ Can read emails")
     
     if 'urn:ietf:params:jmap:submission' in perms['capabilities']:
-        print("✅ Can send emails")
+        print("✅ API key has send permission")
+        
+        # But also check account isn't read-only
+        for account_id, account in perms['accounts'].items():
+            if account.get('isReadOnly'):
+                print("⚠️  But account is READ-ONLY - sending will fail!")
+                print("   Contact Fastmail support to enable write access")
     else:
         print("❌ Cannot send emails - need 'Write mail' permission")
 ```
