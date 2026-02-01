@@ -8,9 +8,11 @@ Python library for viewing and sending emails through the JMAP protocol (RFC 862
 - ✅ JMAP Mail Protocol (RFC 8621) support
 - ✅ Email viewing and querying
 - ✅ Email sending
+- ✅ **Mailbox tree navigation** - Hierarchical mailbox browsing with recursive counts
 - ✅ Mailbox management
 - ✅ Session discovery and authentication
 - ✅ Type-safe email models with dataclasses
+- ✅ Bearer token support (Fastmail API keys)
 - ✅ Easy-to-use Python API
 
 ## Installation
@@ -108,6 +110,47 @@ email = Email(
 # Send email
 submission = client.send_email(email.to_dict())
 print(f"Email sent! Submission ID: {submission.get('id')}")
+```
+
+### Navigate mailbox tree
+
+```python
+from jmap_engine import JMAPClient
+
+with JMAPClient('https://api.fastmail.com', 'you@fastmail.com', 'api-key') as client:
+    # Get mailbox tree
+    tree = client.get_mailbox_tree()
+    
+    # Print tree structure
+    tree.print_tree()
+    # Output:
+    # 📥 Inbox [150 total, 5 unread]
+    #   └─ 📂 Projects [20 total, 2 unread]
+    #      └─ 📂 2025 [10 total, 0 unread]
+    # 📤 Sent [500 total, 0 unread]
+    # 📝 Drafts [2 total, 0 unread]
+    
+    # Get inbox
+    inbox = tree.get_by_role('inbox')
+    print(f"Inbox: {inbox.total_emails} emails, {inbox.unread_emails} unread")
+    
+    # Get emails in inbox and all subfolders
+    total_with_subs = inbox.get_total_emails_recursive()
+    unread_with_subs = inbox.get_unread_emails_recursive()
+    print(f"Including subfolders: {total_with_subs} total, {unread_with_subs} unread")
+    
+    # Navigate to subfolder
+    projects = inbox.find_by_name('Projects')
+    if projects:
+        print(f"Projects path: {projects.path}")  # "Inbox/Projects"
+        print(f"Has {len(projects.children)} subfolders")
+    
+    # Find by path
+    mailbox = tree.find_by_path('Inbox/Projects/2025')
+    
+    # Get statistics
+    stats = tree.get_statistics()
+    print(f"{stats['total_mailboxes']} mailboxes, {stats['total_emails']} emails")
 ```
 
 ### Advanced querying

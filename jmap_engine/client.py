@@ -5,6 +5,7 @@ JMAP Client - Main client class for JMAP operations
 import requests
 from typing import Dict, List, Any, Optional
 from .session import JMAPSession
+from .mailbox import MailboxTree
 from .exceptions import JMAPNetworkError, JMAPServerError, JMAPMethodError
 
 
@@ -158,6 +159,25 @@ class JMAPClient:
                 return method_response[1]['list']
         
         return []
+    
+    def get_mailbox_tree(self, account_id: Optional[str] = None) -> MailboxTree:
+        """
+        Get mailbox tree structure for easy navigation.
+        
+        Args:
+            account_id: Account ID (uses primary if not specified)
+        
+        Returns:
+            MailboxTree object with hierarchical mailbox structure
+        
+        Example:
+            >>> tree = client.get_mailbox_tree()
+            >>> tree.print_tree()
+            >>> inbox = tree.get_by_role('inbox')
+            >>> print(f"Inbox has {inbox.total_emails} emails")
+        """
+        mailboxes = self.get_mailboxes(account_id)
+        return MailboxTree(mailboxes)
     
     def query_emails(
         self,
