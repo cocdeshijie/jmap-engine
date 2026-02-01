@@ -144,10 +144,13 @@ with JMAPClient('https://api.fastmail.com', 'you@fastmail.com', 'api-key') as cl
 **Example output:**
 ```
 ======================================================================
-                 JMAP API Key Permissions
+              JMAP API Key Permissions
 ======================================================================
 
-✅ Supported Features:
+💡 This shows what YOUR API KEY can do (not account properties).
+   The permissions below reflect your API token's scope.
+
+✅ API Key Has Access To:
    • Core JMAP protocol
    • Email reading and management
    • Email sending
@@ -160,11 +163,14 @@ with JMAPClient('https://api.fastmail.com', 'you@fastmail.com', 'api-key') as cl
        - Mail (max attachment: 50.0 MB)
        - Email sending
 
-🔒 Permissions:
-   ✅ 📧 Read emails
-   ✅ 📤 Send emails
-   ✅ 👥 Manage contacts
-   ❌ 📅 Manage calendars
+🌟 Primary Accounts:
+   • Mail, Contacts: you@fastmail.com
+
+🔑 What This API Key Can Do:
+   ✅ CAN 📧 Read emails
+   ✅ CAN 📤 Send emails
+   ✅ CAN 👥 Manage contacts
+   ❌ CANNOT 📅 Manage calendars
 ```
 
 ### View emails
