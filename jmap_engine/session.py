@@ -19,12 +19,14 @@ class JMAPSession:
         base_url: str,
         username: str,
         password: str,
-        timeout: int = 30
+        timeout: int = 30,
+        use_bearer_token: bool = False
     ):
         self.base_url = base_url.rstrip('/')
         self.username = username
         self.password = password
         self.timeout = timeout
+        self.use_bearer_token = use_bearer_token
         
         # Session data
         self.api_url: Optional[str] = None
@@ -38,11 +40,22 @@ class JMAPSession:
         
         # HTTP session
         self.session = requests.Session()
-        self.session.auth = (self.username, self.password)
-        self.session.headers.update({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        })
+        
+        # Auto-detect Bearer token (Fastmail API keys start with 'fmu')
+        if use_bearer_token or (password and password.startswith('fmu')):
+            # Use Bearer token authentication (Fastmail API keys)
+            self.session.headers.update({
+                'Authorization': f'Bearer {password}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            })
+        else:
+            # Use Basic authentication (username/password or app password)
+            self.session.auth = (self.username, self.password)
+            self.session.headers.update({
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            })
     
     def discover_session(self) -> None:
         """

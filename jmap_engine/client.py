@@ -26,18 +26,20 @@ class JMAPClient:
         base_url: str,
         username: str,
         password: str,
-        timeout: int = 30
+        timeout: int = 30,
+        use_bearer_token: bool = False
     ):
         """
         Initialize JMAP client.
         
         Args:
             base_url: Base URL of the JMAP server (e.g., 'https://jmap.example.com')
-            username: Username or email address
-            password: Password or app-specific token
+            username: Username or email address (not used with Bearer token)
+            password: Password, app password, or API token (e.g., Fastmail API key)
             timeout: HTTP request timeout in seconds
+            use_bearer_token: Use Bearer token auth (auto-detected for Fastmail API keys)
         """
-        self.session = JMAPSession(base_url, username, password, timeout)
+        self.session = JMAPSession(base_url, username, password, timeout, use_bearer_token)
         self._request_id = 0
     
     def connect(self) -> None:
