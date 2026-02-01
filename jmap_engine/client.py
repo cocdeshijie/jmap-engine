@@ -504,11 +504,48 @@ class JMAPClient:
         
         response = self.make_request(method_calls, using=using)
         
+        # Debug: Check if email was created first
+        email_created = False
+        for method_response in response['methodResponses']:
+            if method_response[0] == 'Email/set':
+                result = method_response[1]
+                created = result.get('created') or {}
+                if 'draft' in created:
+                    email_created = True
+                else:
+                    # Email creation failed
+                    not_created = result.get('notCreated') or {}
+                    if not_created and 'draft' in not_created:
+                        error = not_created['draft']
+                        error_type = error.get('type', 'unknown')
+                        description = error.get('description', 'Unknown error')
+                        raise JMAPMethodError(
+                            f"Failed to create email draft: {description}",
+                            error_type=error_type
+                        )
+        
         # Extract submission result
         for method_response in response['methodResponses']:
             if method_response[0] == 'EmailSubmission/set':
-                created = method_response[1].get('created', {})
-                if 'submission' in created:
+                result = method_response[1]
+                created = result.get('created') or {}
+                if created and 'submission' in created:
                     return created['submission']
+                
+                # Check for errors
+                not_created = result.get('notCreated') or {}
+                if not_created:
+                    # Extract error details
+                    for ref, error in not_created.items():
+                        error_type = error.get('type', 'unknown')
+                        description = error.get('description', 'Unknown error')
+                        raise JMAPMethodError(
+                            f"Failed to send email: {description}",
+                            error_type=error_type
+                        )
         
-        return {}
+        # If we got here, something unexpected happened
+        raise JMAPMethodError(
+            f"Email sending failed: No submission created. Response: {response}",
+            error_type='unexpectedResponse'
+        )
