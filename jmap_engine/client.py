@@ -379,7 +379,12 @@ class JMAPClient:
             ]
         ]
         
-        response = self.make_request(method_calls)
+        using = [
+            'urn:ietf:params:jmap:core',
+            'urn:ietf:params:jmap:submission'
+        ]
+        
+        response = self.make_request(method_calls, using=using)
         
         # Extract identity list from response
         for method_response in response['methodResponses']:
