@@ -495,7 +495,14 @@ class JMAPClient:
             ['EmailSubmission/set', submission_args, 'c2']
         ]
         
-        response = self.make_request(method_calls)
+        # Need to include submission capability in using
+        using = [
+            'urn:ietf:params:jmap:core',
+            'urn:ietf:params:jmap:mail',
+            'urn:ietf:params:jmap:submission'
+        ]
+        
+        response = self.make_request(method_calls, using=using)
         
         # Extract submission result
         for method_response in response['methodResponses']:
