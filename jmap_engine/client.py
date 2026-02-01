@@ -350,6 +350,44 @@ class JMAPClient:
         mailboxes = self.get_mailboxes(account_id)
         return MailboxTree(mailboxes)
     
+    def get_identities(self, account_id: Optional[str] = None) -> List[Dict]:
+        """
+        Get all identities (email addresses you can send from).
+        
+        Args:
+            account_id: Account ID (uses primary if not specified)
+        
+        Returns:
+            List of identity objects with 'id', 'email', 'name', etc.
+        
+        Example:
+            >>> identities = client.get_identities()
+            >>> for identity in identities:
+            ...     print(f"{identity['name']} <{identity['email']}>")
+        """
+        if account_id is None:
+            account_id = self.session.get_account_id()
+        
+        method_calls = [
+            [
+                'Identity/get',
+                {
+                    'accountId': account_id,
+                    'ids': None  # Get all identities
+                },
+                self._next_request_id()
+            ]
+        ]
+        
+        response = self.make_request(method_calls)
+        
+        # Extract identity list from response
+        for method_response in response['methodResponses']:
+            if method_response[0] == 'Identity/get':
+                return method_response[1]['list']
+        
+        return []
+    
     def query_emails(
         self,
         filter: Optional[Dict] = None,
