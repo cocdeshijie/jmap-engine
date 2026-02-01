@@ -193,10 +193,23 @@ See the [examples/](examples/) directory for more usage examples:
 
 Compatible JMAP servers include:
 
+- **[Fastmail](https://www.fastmail.com/)** - Commercial email service (JMAP creators) - [See setup guide](FASTMAIL.md)
 - [Cyrus IMAP](https://www.cyrusimap.org/) - Open source IMAP/JMAP server
 - [Stalwart Mail Server](https://stalw.art/) - Modern mail server with JMAP support
-- [Fastmail](https://www.fastmail.com/) - Commercial email service (JMAP creators)
 - [Apache James](https://james.apache.org/) - Enterprise mail server
+
+### Quick Fastmail Setup
+
+```python
+from jmap_engine import JMAPClient
+
+# Get app password from: https://www.fastmail.com/settings/security/devicekeys/new
+with JMAPClient('https://api.fastmail.com', 'you@fastmail.com', 'app-password') as client:
+    mailboxes = client.get_mailboxes()
+    print(f"Connected! Found {len(mailboxes)} mailboxes")
+```
+
+See [FASTMAIL.md](FASTMAIL.md) for complete Fastmail setup guide.
 
 ## Resources
 
