@@ -470,6 +470,48 @@ class JMAPClient:
                 error_type='accountReadOnly'
             )
         
+        # Get Drafts mailbox if not specified
+        if 'mailboxIds' not in email or not email['mailboxIds']:
+            mailboxes = self.get_mailboxes(account_id=account_id)
+            drafts_id = None
+            for mb in mailboxes:
+                if mb.get('role') == 'drafts':
+                    drafts_id = mb['id']
+                    break
+            if drafts_id:
+                email['mailboxIds'] = {drafts_id: True}
+        
+        # Transform body format from EmailBodyPart to JMAP bodyValues format
+        body_values = {}
+        
+        # Handle text body
+        if 'textBody' in email and email['textBody']:
+            text_parts = []
+            for i, part in enumerate(email['textBody']):
+                part_id = f'text-{i}'
+                body_values[part_id] = {'value': part['value']}
+                text_parts.append({
+                    'partId': part_id,
+                    'type': part.get('type', 'text/plain')
+                })
+            email['textBody'] = text_parts
+        
+        # Handle HTML body
+        if 'htmlBody' in email and email['htmlBody']:
+            html_parts = []
+            for i, part in enumerate(email['htmlBody']):
+                part_id = f'html-{i}'
+                body_values[part_id] = {'value': part['value']}
+                html_parts.append({
+                    'partId': part_id,
+                    'type': part.get('type', 'text/html')
+                })
+            email['htmlBody'] = html_parts
+        
+        # Add bodyValues to email
+        if body_values:
+            email['bodyValues'] = body_values
+        
         # Create email draft first
         create_args = {
             'accountId': account_id,
