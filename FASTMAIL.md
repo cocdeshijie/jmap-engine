@@ -2,6 +2,12 @@
 
 Fastmail is one of the creators of JMAP and has full JMAP support!
 
+> 🔑 **This guide is for API/programmatic access via Fastmail API keys.**  
+> For regular email reading in a GUI, use [Fastmail's web interface](https://www.fastmail.com/),  
+> [Thunderbird](https://www.thunderbird.net/), or [Apple Mail](https://support.apple.com/mail).  
+>  
+> **Use JMAP Engine to build:** email automation, bots, integrations, monitoring tools, and custom scripts.
+
 ## Setup
 
 You have two authentication options:

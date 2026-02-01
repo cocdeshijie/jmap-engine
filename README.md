@@ -1,6 +1,44 @@
 # JMAP Engine
 
-Python library for viewing and sending emails through the JMAP protocol (RFC 8620, RFC 8621).
+**Python library for programmatic email access via JMAP API**
+
+[![For Developers](https://img.shields.io/badge/For-Developers-blue?style=for-the-badge)](https://github.com/cocdeshijie/jmap-engine)
+[![API Access](https://img.shields.io/badge/API-Access-green?style=for-the-badge)](https://github.com/cocdeshijie/jmap-engine)
+[![Not a Client](https://img.shields.io/badge/Not%20a-Email%20Client-red?style=for-the-badge)](https://github.com/cocdeshijie/jmap-engine)
+
+Build email automation, integrations, and tools using the modern JMAP protocol (RFC 8620, RFC 8621).
+
+> 🔧 **For Developers:** API/programmatic email access  
+> 🤖 **Use For:** Bots, automation, integrations, monitoring, analytics  
+> ❌ **Not For:** Reading personal email (use Thunderbird, Apple Mail, etc.)
+> 
+> **Think of it as:** Python SDK for JMAP email servers (like `requests` is for HTTP APIs)
+
+## What is JMAP Engine?
+
+JMAP Engine is a **Python library for developers** to programmatically access email via the JMAP API protocol. Think of it as a Python SDK for JMAP servers.
+
+### ✅ Use JMAP Engine to build:
+- 📧 **Email automation** - Auto-respond, filter, organize emails
+- 🤖 **Email bots** - Process incoming emails, extract data
+- 🔗 **Integrations** - Connect email to Slack, Discord, databases, etc.
+- 📊 **Analytics tools** - Analyze email patterns, extract metrics
+- 🔔 **Notification systems** - Monitor specific emails, trigger alerts
+- 📝 **Backup scripts** - Download and archive emails
+- 🧪 **Testing tools** - Send/verify emails in test suites
+- 📤 **Bulk operations** - Mass email management
+
+### ❌ NOT for:
+- 📮 End-user email reading (use Thunderbird, Apple Mail, etc.)
+- 🖥️ Building a desktop email client (use existing IMAP/JMAP clients)
+
+### 🔑 Designed for API Keys
+JMAP Engine is optimized for **Fastmail API keys** and similar token-based authentication:
+- Automatic Bearer token detection
+- Permission checking (`client.print_permissions()`)
+- Scoped access (read-only, write-only, etc.)
+
+---
 
 ## Features
 
@@ -13,7 +51,21 @@ Python library for viewing and sending emails through the JMAP protocol (RFC 862
 - ✅ Session discovery and authentication
 - ✅ Type-safe email models with dataclasses
 - ✅ Bearer token support (Fastmail API keys)
+- ✅ Permission checking
 - ✅ Easy-to-use Python API
+
+## Who is this for?
+
+| You are... | Use JMAP Engine? |
+|------------|------------------|
+| 🧑‍💻 **Developer** building email automation | ✅ YES - This is for you! |
+| 🤖 Building bots, scripts, or integrations | ✅ YES - Perfect use case |
+| 🔧 Need programmatic email access via API | ✅ YES - That's what it does |
+| 📊 Building analytics or monitoring tools | ✅ YES - Read/process emails via API |
+| 👤 **End user** who wants to read emails | ❌ NO - Use Thunderbird/Apple Mail |
+| 🖥️ Building a desktop email client | ❌ NO - Use existing clients |
+
+---
 
 ## Installation
 
@@ -31,21 +83,35 @@ pip install -e .
 
 ## Quick Start
 
-### Connect to JMAP server
+### 1. Get a Fastmail API Key
+
+Generate an API token at: https://app.fastmail.com/settings/security/tokens
+
+- Name: "My Email Bot"
+- Permissions: Select what you need (Read mail, Write mail, etc.)
+- Copy the token (starts with `fmu1-`)
+
+### 2. Connect and use the API
 
 ```python
 from jmap_engine import JMAPClient
 
-# Create client
+# Create client with API key (recommended)
 client = JMAPClient(
-    base_url='https://jmap.example.com',
-    username='user@example.com',
-    password='your-password'
+    base_url='https://api.fastmail.com',
+    username='you@fastmail.com',  # Your email (for reference)
+    password='fmu1-your-api-key'  # API key - auto-detected as Bearer token
 )
 
 # Connect and discover capabilities
 client.connect()
+
+# Check what your API key can do
+client.print_permissions()
 ```
+
+> 💡 **API keys starting with `fmu` are automatically detected** as Bearer tokens.  
+> You can also use app passwords (Basic auth), but API keys are recommended for better security.
 
 ### Or use as context manager
 
@@ -298,6 +364,21 @@ with JMAPClient('https://api.fastmail.com', 'you@fastmail.com', 'app-password') 
 ```
 
 See [FASTMAIL.md](FASTMAIL.md) for complete Fastmail setup guide.
+
+## Real-World Use Cases
+
+Want to see what you can build with JMAP Engine? Check out **[USECASES.md](USECASES.md)** for practical examples:
+
+- 🤖 **Auto-reply bots** - Respond to support emails automatically
+- 🔔 **Email monitoring** - Send Slack notifications for important emails
+- 📊 **Analytics** - Generate daily email reports and statistics
+- 🔗 **CRM integration** - Sync emails to your CRM system
+- 📝 **Invoice extraction** - Parse and save invoice data to database
+- 🔄 **Email backup** - Archive emails to JSON/database
+- 🧪 **Testing** - Verify emails in automated tests
+- 📤 **Bulk operations** - Auto-categorize and organize emails
+
+→ **[See all examples in USECASES.md](USECASES.md)**
 
 ## Resources
 
