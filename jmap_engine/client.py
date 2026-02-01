@@ -513,16 +513,16 @@ class JMAPClient:
                 error_type='accountReadOnly'
             )
         
-        # Get Drafts mailbox if not specified
+        # Get Sent mailbox if not specified (so email appears in Sent after sending)
         if 'mailboxIds' not in email or not email['mailboxIds']:
             mailboxes = self.get_mailboxes(account_id=account_id)
-            drafts_id = None
+            sent_id = None
             for mb in mailboxes:
-                if mb.get('role') == 'drafts':
-                    drafts_id = mb['id']
+                if mb.get('role') == 'sent':
+                    sent_id = mb['id']
                     break
-            if drafts_id:
-                email['mailboxIds'] = {drafts_id: True}
+            if sent_id:
+                email['mailboxIds'] = {sent_id: True}
         
         # Transform body format from EmailBodyPart to JMAP bodyValues format
         body_values = {}
@@ -585,8 +585,8 @@ class JMAPClient:
                     'emailId': '#draft',
                     'identityId': identity_id or '$default'
                 }
-            },
-            'onSuccessDestroyEmail': ['#submission']
+            }
+            # Don't destroy email after sending - keep it in Sent folder
         }
         
         method_calls = [
