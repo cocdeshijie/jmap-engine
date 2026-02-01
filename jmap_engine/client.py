@@ -461,7 +461,6 @@ class JMAPClient:
         # Check if account is read-only
         account_info = self.session.accounts.get(account_id, {})
         if account_info.get('isReadOnly', False):
-            from .exceptions import JMAPMethodError
             raise JMAPMethodError(
                 f"Cannot send email: Account is READ-ONLY.\n"
                 f"Your API key has send permission, but the account '{account_info.get('name', account_id)}' "
