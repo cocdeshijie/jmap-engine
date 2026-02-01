@@ -2,7 +2,7 @@
 JMAP Engine - Python library for JMAP protocol (RFC 8620, RFC 8621)
 """
 
-__version__ = "0.2.6"
+__version__ = "0.3.0"
 __author__ = "cocdeshijie"
 __license__ = "MIT"
 
